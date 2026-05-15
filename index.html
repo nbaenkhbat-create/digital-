@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="mn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        /* Purpose-fit: calm "gallery / museum" palette */
+        --bg: #07080b;
+        --panel: rgba(255, 255, 255, 0.05);
+        --panel2: rgba(255, 255, 255, 0.07);
+        --text: rgba(255, 255, 255, 0.93);
+        --muted: rgba(255, 255, 255, 0.62);
+        --border: rgba(255, 255, 255, 0.10);
+        --shadow: 0 22px 70px rgba(0, 0, 0, 0.60);
+        /* subtle warm accent so artworks stay main focus */
+        --accent: #d7b36a;
+        --accent2: #f0d9a2;
+        --danger: #ef4444;
+        --ring: rgba(215, 179, 106, 0.20);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background:
+          radial-gradient(900px 700px at 20% 0%, rgba(215, 179, 106, 0.08), transparent 55%),
+          radial-gradient(900px 700px at 85% 10%, rgba(240, 217, 162, 0.05), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .wrap {
+        width: min(1200px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 0 0 80px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        height: 64px;
+        padding: 0 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(7, 8, 11, 0.82);
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        backdrop-filter: blur(10px);
+        z-index: 20;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        box-shadow: 0 14px 40px rgba(215, 179, 106, 0.14);
+      }
+      .title {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .title strong {
+        font-size: 14px;
+        letter-spacing: 0.2px;
+      }
+      .title span {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+
+      .btn {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn.primary {
+        border-color: rgba(215, 179, 106, 0.45);
+        background: rgba(215, 179, 106, 0.16);
+        color: rgba(255, 255, 255, 0.92);
+        font-weight: 700;
+        border-radius: 10px;
+      }
+      .btn.primary:hover {
+        border-color: rgba(240, 217, 162, 0.55);
+        background: rgba(240, 217, 162, 0.18);
+      }
+      .btn.danger {
+        border-color: rgba(255, 255, 255, 0.0);
+        background: rgba(127, 29, 29, 1); /* red-900 */
+        color: #fff;
+        border-radius: 10px;
+      }
+      .btn.danger:hover {
+        background: rgba(153, 27, 27, 1); /* red-800 */
+      }
+
+      .pill {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.35);
+      }
+      .dot.ok {
+        background: rgba(215, 179, 106, 0.95);
+        box-shadow: 0 0 0 4px var(--ring);
+      }
+
+      main {
+        margin-top: 84px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .container {
+        width: min(1100px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      /* Floating upload button + side panel (digital-gallery-web style) */
+      .fab {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 999px;
+        border: 1px solid rgba(215, 179, 106, 0.45);
+        background: linear-gradient(135deg, rgba(215, 179, 106, 0.95), rgba(240, 217, 162, 0.85));
+        color: rgba(0, 0, 0, 0.9);
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+        z-index: 25;
+      }
+      .fab:hover {
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.7);
+        transform: translateY(-1px);
+      }
+
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: min(420px, 92vw);
+        background: rgba(0, 0, 0, 0.92);
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+        transform: translateX(100%);
+        transition: transform 180ms ease;
+        z-index: 30;
+        overflow: auto;
+      }
+      .drawer.open {
+        transform: translateX(0);
+      }
+      .drawer .top {
+        position: sticky;
+        top: 0;
+        background: rgba(0, 0, 0, 0.9);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .drawer .top strong {
+        font-size: 18px;
+      }
+      .drawer .content {
+        padding: 16px;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 160ms ease;
+        z-index: 28;
+      }
+      .overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .panel .hd {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .panel .hd h2 {
+        margin: 0;
+        font-size: 14px;
+      }
+      .panel .bd {
+        padding: 16px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 12px;
+      }
+
+      /* Preview section (right side) */
+      .previewSection {
+        border: 1px solid rgba(31, 41, 55, 1);
+        background: rgba(17, 24, 39, 1);
+        border-radius: 14px;
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .previewSection .phd {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .previewSection .phd strong {
+        font-size: 12px;
+        letter-spacing: 0.3px;
+      }
+      .previewSection .phd small {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      /* 3D curved carousel (cylinder-like) - used inside Preview */
+      .carousel {
+        position: relative;
+        height: var(--cHeight, 220px);
+        border-radius: 14px;
+        border: 1px solid rgba(31, 41, 55, 1);
+        background: rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+        perspective: 1200px;
+        transform-style: preserve-3d;
+      }
+      .carouselTrack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform-style: preserve-3d;
+      }
+      .cItem {
+        position: absolute;
+        width: var(--cItemW, min(220px, 52vw));
+        aspect-ratio: 1 / 1;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(31, 41, 55, 1);
+        background: rgba(17, 24, 39, 1);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+        transform-style: preserve-3d;
+        transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+          opacity 240ms ease,
+          filter 240ms ease;
+        cursor: pointer;
+      }
+      .cItem img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: rgba(0, 0, 0, 0.55);
+        display: block;
+        transform: translateZ(20px);
+      }
+      .cItem .cap {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        transform: translateZ(40px);
+        display: grid;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 240ms ease;
+      }
+      .cItem.isActive .cap {
+        opacity: 1;
+      }
+      .cItem .cap strong {
+        font-size: 14px;
+      }
+      .cItem .cap small {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.35;
+        max-height: 2.7em;
+        overflow: hidden;
+      }
+      .cItem .limeBar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 0;
+        background: var(--accent);
+        transition: height 260ms ease;
+      }
+      .cItem.isActive .limeBar {
+        height: 100%;
+      }
+      .carousel:focus-within {
+        outline: 2px solid rgba(0, 255, 0, 0.25);
+        outline-offset: 2px;
+      }
+
+      /* Preview full modal */
+      .pdlg {
+        width: min(980px, calc(100% - 28px));
+      }
+      .pdlg .dlg-bd {
+        gap: 16px;
+      }
+      .pdlgTitle {
+        display: grid;
+        gap: 4px;
+      }
+      .pdlgTitle small {
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 12px;
+      }
+      .card {
+        grid-column: span 12;
+        border: 1px solid rgba(31, 41, 55, 1); /* gray-800 */
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(17, 24, 39, 1);
+        min-height: 220px;
+        position: relative;
+      }
+      .card:hover {
+        border-color: rgba(55, 65, 81, 1); /* gray-700 */
+      }
+      @media (min-width: 640px) {
+        .card {
+          grid-column: span 6;
+        }
+      }
+      @media (min-width: 980px) {
+        .card {
+          grid-column: span 4;
+        }
+      }
+      .thumb {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        display: block;
+        background: rgba(31, 41, 55, 1);
+      }
+
+      /* digital-gallery-web like hover overlay */
+      .imgWrap {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        border-radius: 14px;
+      }
+      .imgWrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: rgba(0, 0, 0, 0.55);
+        transition: transform 500ms ease;
+        display: block;
+      }
+      .card:hover .imgWrap img {
+        transform: scale(1.10);
+      }
+      .hoverOverlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 18px;
+        background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.0) 70%);
+        opacity: 0;
+        transition: opacity 300ms ease;
+      }
+      .card:hover .hoverOverlay {
+        opacity: 1;
+      }
+      .limeBar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 0;
+        background: var(--accent);
+        transition: height 300ms ease;
+      }
+      .card:hover .limeBar {
+        height: 100%;
+      }
+      .meta {
+        padding: 12px 12px 14px;
+        display: grid;
+        gap: 4px;
+      }
+      .meta strong {
+        font-size: 13px;
+      }
+      .meta small {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .row {
+        display: grid;
+        gap: 10px;
+      }
+      .row.two {
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 720px) {
+        .row.two {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input[type="email"],
+      input[type="password"],
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.05);
+        outline: none;
+      }
+      textarea {
+        min-height: 88px;
+        resize: vertical;
+      }
+      input[type="file"] {
+        width: 100%;
+      }
+
+      .previewWrap {
+        margin-top: 10px;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 14px;
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .previewHd {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .previewHd strong {
+        font-size: 12px;
+      }
+      .previewMain {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.03);
+        position: relative;
+        transform-style: preserve-3d;
+        perspective: 900px;
+        will-change: transform;
+      }
+      .previewMain::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          500px 300px at var(--gx, 50%) var(--gy, 30%),
+          rgba(0, 255, 0, 0.18),
+          transparent 55%
+        );
+        opacity: 0;
+        transition: opacity 160ms ease;
+        mix-blend-mode: screen;
+      }
+      .previewMain.tilt::after {
+        opacity: 1;
+      }
+      .previewMain img {
+        width: 100%;
+        height: 280px;
+        object-fit: contain;
+        display: block;
+        background: rgba(0, 0, 0, 0.35);
+        transform: translateZ(20px);
+      }
+      .previewMain .cap {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        padding: 8px 10px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.88);
+        background: rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transform: translateZ(40px);
+      }
+
+      .previewThumbs {
+        display: flex;
+        gap: 10px;
+        overflow: auto;
+        padding-bottom: 2px;
+      }
+      .thumbBtn {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        padding: 0;
+        cursor: pointer;
+        flex: 0 0 auto;
+        width: 96px;
+        overflow: hidden;
+        transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+      }
+      .thumbBtn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(183, 243, 90, 0.55);
+      }
+      .thumbBtn.active {
+        border-color: rgba(183, 243, 90, 0.75);
+        box-shadow: 0 0 0 3px var(--ring);
+      }
+      .thumbBtn img {
+        width: 100%;
+        height: 72px;
+        object-fit: cover;
+        display: block;
+      }
+      .thumbBtn .tcap {
+        padding: 6px 8px;
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .fadeSwap {
+        animation: fadeSwap 160ms ease;
+      }
+      @keyframes fadeSwap {
+        from {
+          opacity: 0;
+          transform: translateX(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .err {
+        color: rgba(255, 120, 140, 0.95);
+        font-size: 12px;
+      }
+      .okmsg {
+        color: rgba(120, 255, 210, 0.95);
+        font-size: 12px;
+      }
+
+      dialog {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 18px;
+        padding: 0;
+        background: rgba(15, 18, 28, 0.82);
+        color: var(--text);
+        width: min(520px, calc(100% - 28px));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.55);
+      }
+      .dlg-hd {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .dlg-hd strong {
+        font-size: 14px;
+      }
+      .dlg-bd {
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container" style="display:flex; align-items:center; justify-content:space-between; gap:16px; width:min(1100px, calc(100% - 40px)); margin:0 auto;">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div class="title">
+            <strong>Digital Gallery</strong>
+            <span id="subTitle">Зурагнууд ачаалж байна…</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <span class="pill" title="Admin status">
+            <span id="authDot" class="dot"></span>
+            <span id="authText">Guest</span>
+          </span>
+          <button id="adminBtn" class="btn primary" type="button">Admin</button>
+          <button id="logoutBtn" class="btn danger" type="button" style="display: none">Гарах</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <main class="container">
+        <section class="panel">
+          <div class="hd">
+            <h2>Gallery</h2>
+            <span id="countPill" class="pill"><span class="dot"></span><span id="countText">0 зураг</span></span>
+          </div>
+          <div class="bd">
+            <div class="row two" style="align-items:end; margin-bottom: 12px">
+              <label>
+                Album
+                <select id="albumSelect" class="btn" style="width:100%; text-align:left; padding: 10px 12px; border-radius: 12px">
+                  <option value="">Ачаалж байна…</option>
+                </select>
+              </label>
+              <div class="previewSection" id="previewSection">
+                <div class="phd">
+                  <strong>Preview</strong>
+                  <small>3D</small>
+                </div>
+                <div id="previewCarouselMount"></div>
+              </div>
+            </div>
+            <div class="hint" id="albumHint" style="margin-bottom: 10px">Хэрэглэгчид album сонгоод зурагнуудыг үзнэ.</div>
+            <div id="galleryGrid" class="grid"></div>
+            <div id="emptyState" class="hint" style="display: none">Одоогоор зураг алга байна.</div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <button id="fabBtn" class="fab" type="button" title="Upload">↑</button>
+    <div id="overlay" class="overlay"></div>
+    <aside id="drawer" class="drawer" aria-label="Upload panel">
+      <div class="top">
+        <strong>Upload Image</strong>
+        <button id="closeDrawer" class="btn" type="button">Хаах</button>
+      </div>
+      <div class="content">
+        <div class="hint" style="margin-bottom:12px">Зураг Firebase Storage-д хадгалагдана (Firestore-д зөвхөн мэдээлэл).</div>
+        <form id="uploadForm" class="row" autocomplete="off">
+          <div class="row">
+            <label>
+              Album сонгох
+              <select id="drawerAlbumSelect" class="btn" style="width:100%; text-align:left; padding: 10px 12px; border-radius: 12px">
+                <option value="">Ачаалж байна…</option>
+              </select>
+            </label>
+            <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+              <button id="createAlbumBtn" class="btn primary" type="button">Album үүсгэх</button>
+              <button id="deleteAlbumBtn" class="btn danger" type="button">Album устгах</button>
+            </div>
+          </div>
+          <div class="row">
+            <label>
+              Гарчиг
+              <input id="titleInput" type="text" placeholder="Image title" maxlength="80" />
+            </label>
+            <label>
+              Тайлбар
+              <textarea id="descInput" placeholder="Image description (optional)" maxlength="200"></textarea>
+            </label>
+          </div>
+          <label>
+            Файл
+            <input id="fileInput" type="file" accept="image/*" multiple />
+          </label>
+          <label style="display:flex; gap:10px; align-items:center; color: rgba(255,255,255,0.75); font-size:12px;">
+            <input id="originalToggle" type="checkbox" />
+            Original (resize хийхгүй, upload хийсэн чигээрээ) — том зураг дээр fail болж магадгүй
+          </label>
+          <div id="previewWrap" class="previewWrap" style="display: none">
+            <div class="previewHd">
+              <strong>Preview</strong>
+              <span id="previewCount" class="hint">0 файл</span>
+            </div>
+            <div id="previewMain" class="previewMain">
+              <img id="previewMainImg" alt="Preview" />
+              <div id="previewMainCap" class="cap"></div>
+            </div>
+            <div id="previewThumbs" class="previewThumbs"></div>
+          </div>
+          <button id="uploadBtn" class="btn primary" type="submit">Upload Image</button>
+          <div id="uploadMsg" class="hint"></div>
+        </form>
+      </div>
+    </aside>
+
+    <dialog id="loginDialog">
+      <div class="dlg-hd">
+        <strong>Admin нэвтрэх</strong>
+        <button id="closeLogin" class="btn" type="button">Хаах</button>
+      </div>
+      <div class="dlg-bd">
+        <div class="hint">
+          “Admin” товчоор password оруулаад зураг нэмнэ. (Энэ нь энгийн UI хамгаалалт — server талдаа public upload нээлттэй байх шаардлагатай.)
+        </div>
+        <form id="loginForm" class="row">
+          <label>
+            Password
+            <input id="passInput" type="password" placeholder="********" required />
+          </label>
+          <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap">
+            <button class="btn primary" type="submit">Нэвтрэх</button>
+          </div>
+          <div id="loginMsg" class="err" style="min-height: 16px"></div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="previewDialog" class="pdlg">
+      <div class="dlg-hd">
+        <div class="pdlgTitle">
+          <strong>Preview</strong>
+          <small>3D carousel — томоор харах</small>
+        </div>
+        <button id="closePreviewDialog" class="btn" type="button">Хаах</button>
+      </div>
+      <div class="dlg-bd">
+        <div id="previewDialogMount"></div>
+        <div class="hint">Scroll/drag/← → ашиглаад зураг сольж болно.</div>
+      </div>
+    </dialog>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        deleteDoc,
+        doc,
+        onSnapshot,
+        orderBy,
+        query,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+      import {
+        getStorage,
+        ref,
+        uploadBytes,
+        getDownloadURL,
+        deleteObject,
+      } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+      // Зургийг Firebase Storage-д хадгалж, Firestore-д зөвхөн metadata + URL байна.
+      // (Өмнө dataUrl-ээр Firestore-д хадгалдаг байсан — 1MB/document хязгаарласан зураг алга болно.)
+
+      // Firebase config (таны явуулснаар)
+      const firebaseConfig = {
+        apiKey: "AIzaSyAn8tImfQ614AUnlWYOMVcZVYMTIL2G5dU",
+        authDomain: "digital-gallery-b57d9.firebaseapp.com",
+        projectId: "digital-gallery-b57d9",
+        storageBucket: "digital-gallery-b57d9.appspot.com",
+        messagingSenderId: "911106626460",
+        appId: "1:911106626460:web:8e584c881f4541dac96e59",
+        measurementId: "G-NW22CJVX0M",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const storage = getStorage(app);
+
+      const FIRESTORE_DOC_MAX_BYTES = 950_000;
+
+      const els = {
+        subTitle: document.getElementById("subTitle"),
+        authDot: document.getElementById("authDot"),
+        authText: document.getElementById("authText"),
+        adminBtn: document.getElementById("adminBtn"),
+        logoutBtn: document.getElementById("logoutBtn"),
+        galleryGrid: document.getElementById("galleryGrid"),
+        emptyState: document.getElementById("emptyState"),
+        countText: document.getElementById("countText"),
+        albumSelect: document.getElementById("albumSelect"),
+        albumHint: document.getElementById("albumHint"),
+        previewCarouselMount: document.getElementById("previewCarouselMount"),
+        previewDialog: document.getElementById("previewDialog"),
+        closePreviewDialog: document.getElementById("closePreviewDialog"),
+        previewDialogMount: document.getElementById("previewDialogMount"),
+
+        loginDialog: document.getElementById("loginDialog"),
+        closeLogin: document.getElementById("closeLogin"),
+        loginForm: document.getElementById("loginForm"),
+        passInput: document.getElementById("passInput"),
+        loginMsg: document.getElementById("loginMsg"),
+
+        uploadForm: document.getElementById("uploadForm"),
+        drawerAlbumSelect: document.getElementById("drawerAlbumSelect"),
+        createAlbumBtn: document.getElementById("createAlbumBtn"),
+        deleteAlbumBtn: document.getElementById("deleteAlbumBtn"),
+        titleInput: document.getElementById("titleInput"),
+        descInput: document.getElementById("descInput"),
+        fileInput: document.getElementById("fileInput"),
+        uploadBtn: document.getElementById("uploadBtn"),
+        uploadMsg: document.getElementById("uploadMsg"),
+
+        previewWrap: document.getElementById("previewWrap"),
+        previewMain: document.getElementById("previewMain"),
+        previewMainImg: document.getElementById("previewMainImg"),
+        previewMainCap: document.getElementById("previewMainCap"),
+        previewThumbs: document.getElementById("previewThumbs"),
+        previewCount: document.getElementById("previewCount"),
+        originalToggle: document.getElementById("originalToggle"),
+
+        fabBtn: document.getElementById("fabBtn"),
+        overlay: document.getElementById("overlay"),
+        drawer: document.getElementById("drawer"),
+        closeDrawer: document.getElementById("closeDrawer"),
+      };
+
+      function setMsg(kind, text) {
+        if (!text) {
+          els.uploadMsg.className = "hint";
+          els.uploadMsg.textContent = "";
+          return;
+        }
+        els.uploadMsg.className = kind === "err" ? "err" : kind === "ok" ? "okmsg" : "hint";
+        els.uploadMsg.textContent = text;
+      }
+
+      function setAuthUI(isAdmin) {
+        const authed = !!isAdmin;
+        els.authDot.classList.toggle("ok", authed);
+        els.authText.textContent = authed ? "Admin" : "Guest";
+        els.logoutBtn.style.display = authed ? "" : "none";
+        els.fabBtn.style.display = authed ? "" : "none";
+      }
+
+      function escapeHtml(s) {
+        return String(s ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function renderGallery(items, isAdmin) {
+        els.galleryGrid.innerHTML = "";
+        els.emptyState.style.display = items.length ? "none" : "";
+        els.countText.textContent = `${items.length} зураг`;
+
+        for (const it of items) {
+          const title = it.title || "Untitled";
+          const desc = it.description || "";
+          const canDelete = !!isAdmin;
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="imgWrap">
+              <img src="${escapeHtml(it.url ?? "")}" alt="${escapeHtml(title)}" loading="lazy" />
+              <div class="hoverOverlay">
+                <div style="font-weight:800; font-size:16px; margin-bottom:6px;">${escapeHtml(title)}</div>
+                ${desc ? `<div style="color: rgba(255,255,255,0.8); font-size:12px; line-height:1.3; max-height:2.6em; overflow:hidden;">${escapeHtml(desc)}</div>` : ""}
+              </div>
+              <div class="limeBar" aria-hidden="true"></div>
+            </div>
+            ${
+              canDelete
+                ? `<div style="padding:12px; display:flex; justify-content:flex-end;">
+                     <button class="btn danger" data-del="${escapeHtml(it.id)}" type="button">Delete</button>
+                   </div>`
+                : ""
+            }
+          `;
+          els.galleryGrid.appendChild(card);
+        }
+      }
+
+      let lastPreviewItems = [];
+
+      function buildPreviewCarousel(items, mountEl, opts) {
+        mountEl.innerHTML = "";
+        if (!items.length) return;
+
+        const root = document.createElement("div");
+        root.className = "carousel";
+        root.tabIndex = 0;
+        if (opts?.height) root.style.setProperty("--cHeight", opts.height);
+        if (opts?.itemW) root.style.setProperty("--cItemW", opts.itemW);
+        const track = document.createElement("div");
+        track.className = "carouselTrack";
+        root.appendChild(track);
+        mountEl.appendChild(root);
+
+        let active = Math.max(0, Math.min(Number(localStorage.getItem("dg_active_img") || "0") || 0, items.length - 1));
+        let dragging = false;
+        let dragX0 = 0;
+        let dragActive0 = 0;
+        let autoplayId = 0;
+        let hasEntered = false;
+
+        const nodes = items.map((it, i) => {
+          const title = it.title || "Untitled";
+          const desc = it.description || "";
+          const el = document.createElement("div");
+          el.className = "cItem";
+          el.setAttribute("data-idx", String(i));
+          el.innerHTML = `
+            <img src="${escapeHtml(it.url ?? "")}" alt="${escapeHtml(title)}" loading="lazy" />
+            <div class="cap">
+              <strong>${escapeHtml(title)}</strong>
+              ${desc ? `<small>${escapeHtml(desc)}</small>` : `<small></small>`}
+            </div>
+            <div class="limeBar" aria-hidden="true"></div>
+          `;
+          el.addEventListener("click", () => {
+            active = i;
+            localStorage.setItem("dg_active_img", String(active));
+            layout();
+          });
+          track.appendChild(el);
+          return el;
+        });
+
+        function setActive(next) {
+          const n = Math.max(0, Math.min(next, items.length - 1));
+          if (n === active) return;
+          active = n;
+          localStorage.setItem("dg_active_img", String(active));
+          layout();
+        }
+
+        function stopAutoplay() {
+          if (autoplayId) {
+            clearInterval(autoplayId);
+            autoplayId = 0;
+          }
+        }
+
+        function startAutoplay() {
+          stopAutoplay();
+          if (items.length <= 1) return;
+          autoplayId = setInterval(() => {
+            if (dragging) return;
+            // smooth auto-advance
+            setActive(active + 1);
+          }, 2200);
+        }
+
+        function layout() {
+          const spacing = opts?.spacing ?? 120;
+          const angle = opts?.angle ?? 20;
+          const depth = opts?.depth ?? 140;
+          const maxSide = opts?.maxSide ?? 3;
+
+          for (let i = 0; i < nodes.length; i++) {
+            const el = nodes[i];
+            const off = i - active;
+            const abs = Math.abs(off);
+            const visible = abs <= maxSide;
+            el.style.pointerEvents = visible ? "auto" : "none";
+            el.style.opacity = visible ? String(1 - abs * 0.18) : "0";
+            el.style.filter = abs === 0 ? "none" : `saturate(${Math.max(0.75, 1 - abs * 0.1)}) blur(${Math.max(0, abs - 2) * 0.6}px)`;
+
+            if (!visible) {
+              el.style.transform = `translateX(${off * spacing}px) translateZ(${-depth - abs * 30}px) rotateY(${off * angle}deg) scale(0.75)`;
+              el.classList.remove("isActive");
+              continue;
+            }
+
+            if (off === 0) {
+              el.classList.add("isActive");
+              el.style.transform = `translateX(0px) translateZ(${depth}px) rotateY(0deg) scale(1.06)`;
+            } else {
+              el.classList.remove("isActive");
+              const tz = depth - abs * 95;
+              const s = Math.max(0.84, 1 - abs * 0.07);
+              el.style.transform = `translateX(${off * spacing}px) translateZ(${tz}px) rotateY(${off * angle}deg) scale(${s})`;
+            }
+          }
+        }
+
+        layout();
+
+        // "Ороход" эхний зураг төвд гарч, autoplay эхэлнэ
+        root.addEventListener("pointerenter", () => {
+          if (!hasEntered) {
+            hasEntered = true;
+            active = 0;
+            localStorage.setItem("dg_active_img", String(active));
+            layout();
+          }
+          startAutoplay();
+        });
+        root.addEventListener("pointerleave", () => {
+          stopAutoplay();
+        });
+        root.addEventListener("focusin", startAutoplay);
+        root.addEventListener("focusout", stopAutoplay);
+
+        root.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            stopAutoplay();
+            const dir = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+            if (dir > 0) setActive(active + 1);
+            else if (dir < 0) setActive(active - 1);
+          },
+          { passive: false },
+        );
+
+        root.addEventListener("pointerdown", (e) => {
+          dragging = true;
+          stopAutoplay();
+          dragX0 = e.clientX;
+          dragActive0 = active;
+          root.setPointerCapture?.(e.pointerId);
+        });
+        root.addEventListener("pointerup", (e) => {
+          dragging = false;
+          root.releasePointerCapture?.(e.pointerId);
+          startAutoplay();
+        });
+        root.addEventListener("pointercancel", () => (dragging = false));
+        root.addEventListener("pointermove", (e) => {
+          if (!dragging) return;
+          const dx = e.clientX - dragX0;
+          const step = 120;
+          const moved = Math.round(-dx / step);
+          setActive(dragActive0 + moved);
+        });
+
+        root.addEventListener("keydown", (e) => {
+          stopAutoplay();
+          if (e.key === "ArrowRight") setActive(active + 1);
+          if (e.key === "ArrowLeft") setActive(active - 1);
+        });
+      }
+
+      function renderPreviewCarousel(items) {
+        lastPreviewItems = items.slice();
+        buildPreviewCarousel(items, els.previewCarouselMount, {
+          height: "220px",
+          itemW: "min(220px, 52vw)",
+          spacing: 120,
+          angle: 20,
+          depth: 140,
+          maxSide: 3,
+        });
+      }
+
+      function renderAlbums(albums, selectedId) {
+        els.albumSelect.innerHTML = "";
+        els.drawerAlbumSelect.innerHTML = "";
+        if (!albums.length) {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "Album алга байна";
+          els.albumSelect.appendChild(opt);
+          els.drawerAlbumSelect.appendChild(opt.cloneNode(true));
+          return;
+        }
+        for (const a of albums) {
+          const opt = document.createElement("option");
+          opt.value = a.id;
+          opt.textContent = a.name || `Album ${a.id}`;
+          if (a.id === selectedId) opt.selected = true;
+          els.albumSelect.appendChild(opt);
+          els.drawerAlbumSelect.appendChild(opt.cloneNode(true));
+        }
+      }
+
+      // Preview full view (click to open)
+      function openPreviewDialog() {
+        if (!lastPreviewItems.length) return;
+        buildPreviewCarousel(lastPreviewItems, els.previewDialogMount, {
+          height: "520px",
+          itemW: "min(420px, 78vw)",
+          spacing: 200,
+          angle: 18,
+          depth: 260,
+          maxSide: 4,
+        });
+        els.previewDialog.showModal();
+      }
+      els.previewCarouselMount.addEventListener("click", openPreviewDialog);
+      document.getElementById("previewSection")?.addEventListener("click", openPreviewDialog);
+      els.closePreviewDialog.addEventListener("click", () => els.previewDialog.close());
+
+      async function deleteImage(id) {
+        const btn = els.galleryGrid.querySelector(`button[data-del="${CSS.escape(String(id))}"]`);
+        if (btn) btn.disabled = true;
+        try {
+          if (!selectedAlbumId) throw new Error("Album сонгоогүй байна.");
+          const item = latestItems.find((x) => x.id === id);
+          if (item?.storagePath) {
+            try {
+              await deleteObject(ref(storage, item.storagePath));
+            } catch (e) {
+              console.warn("Storage файл устгахад алдаа:", e);
+            }
+          }
+          await deleteDoc(doc(db, "albums", selectedAlbumId, "images", String(id)));
+        } catch (e) {
+          alert(`Устгах үед алдаа гарлаа: ${e?.message || e}`);
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      let latestItems = [];
+      let isAdmin = false;
+      let albums = [];
+      let selectedAlbumId = localStorage.getItem("dg_albumId") || "";
+      let unsubscribeImages = null;
+
+      onAuthStateChanged(auth, (user) => {
+        isAdmin = !!user;
+        setAuthUI(isAdmin);
+        renderGallery(latestItems, isAdmin);
+      });
+
+      function openDrawer() {
+        if (!isAdmin) return;
+        els.drawer.classList.add("open");
+        els.overlay.classList.add("open");
+      }
+      function closeDrawer() {
+        els.drawer.classList.remove("open");
+        els.overlay.classList.remove("open");
+      }
+
+      els.fabBtn.addEventListener("click", openDrawer);
+      els.closeDrawer.addEventListener("click", closeDrawer);
+      els.overlay.addEventListener("click", closeDrawer);
+
+      // 3D preview tilt (digital card feel)
+      {
+        const el = els.previewMain;
+        let raf = 0;
+        let last = null;
+
+        function setTiltFromEvent(e) {
+          const rect = el.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width; // 0..1
+          const y = (e.clientY - rect.top) / rect.height; // 0..1
+          const rx = (0.5 - y) * 10; // deg
+          const ry = (x - 0.5) * 14; // deg
+          el.style.setProperty("--gx", `${Math.round(x * 100)}%`);
+          el.style.setProperty("--gy", `${Math.round(y * 100)}%`);
+          el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        }
+
+        el.addEventListener("pointerenter", () => {
+          el.classList.add("tilt");
+          el.style.transition = "transform 120ms ease";
+        });
+        el.addEventListener("pointerleave", () => {
+          el.classList.remove("tilt");
+          el.style.transition = "transform 200ms ease";
+          el.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
+        });
+        el.addEventListener("pointermove", (e) => {
+          last = e;
+          if (raf) return;
+          raf = requestAnimationFrame(() => {
+            raf = 0;
+            if (!last) return;
+            el.style.transition = "transform 0ms";
+            setTiltFromEvent(last);
+          });
+        });
+      }
+
+      els.adminBtn.addEventListener("click", () => {
+        els.loginMsg.textContent = "";
+        els.loginDialog.showModal();
+      });
+      els.closeLogin.addEventListener("click", () => els.loginDialog.close());
+
+      els.logoutBtn.addEventListener("click", async () => {
+        await signOut(auth);
+      });
+
+      els.loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        els.loginMsg.textContent = "";
+        // Энэ хувилбар дээр admin нь Firebase Auth (Email/Password) ашиглана.
+        // Password input-д "email|password" хэлбэрээр оруулна (ж: admin@mail.com|123456)
+        const raw = els.passInput.value.trim();
+        const parts = raw.split("|");
+        if (parts.length !== 2) {
+          els.loginMsg.textContent = "Email|Password хэлбэрээр оруулна уу. (ж: admin@mail.com|123456)";
+          return;
+        }
+        const email = parts[0].trim();
+        const pass = parts[1];
+        try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          els.loginDialog.close();
+        } catch (err) {
+          els.loginMsg.textContent = err?.message || String(err);
+        }
+      });
+
+      els.galleryGrid.addEventListener("click", (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+        const docId = t.getAttribute("data-del");
+        if (!docId) return;
+        if (!confirm("Энэ зургийг устгах уу?")) return;
+        deleteImage(docId);
+      });
+
+      const albumsCol = collection(db, "albums");
+      const albumsQ = query(albumsCol, orderBy("createdAt", "asc"));
+
+      function imagesColForAlbum(albumId) {
+        return collection(db, "albums", albumId, "images");
+      }
+
+      function subscribeImages(albumId) {
+        if (unsubscribeImages) {
+          unsubscribeImages();
+          unsubscribeImages = null;
+        }
+        latestItems = [];
+        renderGallery(latestItems, isAdmin);
+
+        if (!albumId) {
+          els.subTitle.textContent = "Album сонгоно уу.";
+          els.emptyState.style.display = "";
+          return;
+        }
+
+        // orderBy("createdAt") нь createdAt талбаргүй баримтыг query-ээс бүрмөсөн хасдаг.
+        const imagesQ = query(imagesColForAlbum(albumId));
+
+        unsubscribeImages = onSnapshot(
+          imagesQ,
+          (snap) => {
+            latestItems = snap.docs
+              .map((d) => {
+                const data = d.data() || {};
+                return {
+                  id: d.id,
+                  url: data.url || "",
+                  title: data.title || "",
+                  description: data.description || "",
+                  createdAt: data.createdAt || null,
+                  createdAtMs: data.createdAtMs || 0,
+                  storagePath: data.storagePath || "",
+                  albumId,
+                };
+              })
+              .sort((a, b) => imageSortMs(b) - imageSortMs(a));
+            els.subTitle.textContent = "Хэрэглэгчид админы оруулсан зурагнуудыг үзнэ.";
+            renderGallery(latestItems, isAdmin);
+            renderPreviewCarousel(latestItems);
+          },
+          (err) => {
+            els.subTitle.textContent = "Алдаа: Gallery data уншиж чадсангүй.";
+            console.error(err);
+          },
+        );
+      }
+
+      function imageSortMs(it) {
+        if (it.createdAtMs) return it.createdAtMs;
+        const ts = it.createdAt;
+        if (ts && typeof ts.toMillis === "function") return ts.toMillis();
+        if (ts && typeof ts.seconds === "number") return ts.seconds * 1000;
+        return 0;
+      }
+
+      function estimateFirestoreDocBytes(fields) {
+        let n = 0;
+        for (const v of Object.values(fields)) {
+          if (typeof v === "string") n += v.length * 2;
+          else if (typeof v === "number") n += 8;
+          else if (v && typeof v === "object") n += 64;
+        }
+        return n;
+      }
+
+      async function decodeImageFile(file) {
+        const imgUrl = URL.createObjectURL(file);
+        try {
+          const img = new Image();
+          img.decoding = "async";
+          img.src = imgUrl;
+          await img.decode();
+          const width = img.naturalWidth || img.width;
+          const height = img.naturalHeight || img.height;
+          if (!width || !height) throw new Error("Зургийн хэмжээ уншиж чадсангүй.");
+          return { img, width, height };
+        } finally {
+          URL.revokeObjectURL(imgUrl);
+        }
+      }
+
+      function canvasToBlob(canvas, mime, quality) {
+        return new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Зураг compress хийж чадсангүй."))), mime, quality);
+        });
+      }
+
+      async function fileToCompressedBlob(file, opts) {
+        const { maxW = 1280, maxH = 1280, quality = 0.75, mime = "image/webp" } = opts || {};
+        const { img, width: srcW, height: srcH } = await decodeImageFile(file);
+
+        const scale = Math.min(1, maxW / srcW, maxH / srcH);
+        const width = Math.max(1, Math.round(srcW * scale));
+        const height = Math.max(1, Math.round(srcH * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (!ctx) throw new Error("Canvas context үүсгэж чадсангүй.");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const blob = await canvasToBlob(canvas, mime, quality);
+        return { blob, width, height, mime };
+      }
+
+      async function fileToCompressedDataUrl(file, opts) {
+        const { blob, width, height, mime } = await fileToCompressedBlob(file, opts);
+        const dataUrl = await new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(String(r.result || ""));
+          r.onerror = () => reject(new Error("File уншиж чадсангүй."));
+          r.readAsDataURL(blob);
+        });
+        return { dataUrl, width, height, mime };
+      }
+
+      async function fileToDataUrlUnderFirestoreLimit(file, wantOriginal) {
+        if (wantOriginal) {
+          const { width, height } = await decodeImageFile(file);
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(String(r.result || ""));
+            r.onerror = () => reject(new Error("File уншиж чадсангүй."));
+            r.readAsDataURL(file);
+          });
+          const fields = {
+            title: file.name,
+            description: "",
+            url: dataUrl,
+            width,
+            height,
+            mime: file.type || "image/*",
+            createdAtMs: Date.now(),
+            ownerUid: auth.currentUser?.uid || null,
+          };
+          if (estimateFirestoreDocBytes(fields) > FIRESTORE_DOC_MAX_BYTES) {
+            throw new Error("Original зураг хэт том (Firestore 1MB хязгаар). Compress горим ашиглана уу.");
+          }
+          return { dataUrl, width, height, mime: file.type || "image/*", storagePath: "" };
+        }
+
+        const attempts = [
+          { maxW: 1280, maxH: 1280, quality: 0.75 },
+          { maxW: 1024, maxH: 1024, quality: 0.65 },
+          { maxW: 800, maxH: 800, quality: 0.55 },
+          { maxW: 640, maxH: 640, quality: 0.45 },
+        ];
+        for (const a of attempts) {
+          const { dataUrl, width, height, mime } = await fileToCompressedDataUrl(file, { ...a, mime: "image/webp" });
+          const fields = {
+            title: file.name,
+            description: "",
+            url: dataUrl,
+            width,
+            height,
+            mime,
+            createdAtMs: Date.now(),
+            ownerUid: auth.currentUser?.uid || null,
+          };
+          if (estimateFirestoreDocBytes(fields) <= FIRESTORE_DOC_MAX_BYTES) {
+            return { dataUrl, width, height, mime, storagePath: "" };
+          }
+        }
+        throw new Error("Зураг жижигрүүлсэн ч Firestore-д багтахгүй байна.");
+      }
+
+      function safeStorageName(name) {
+        return String(name || "image")
+          .replace(/[^\w.\-()+]/g, "_")
+          .slice(0, 80);
+      }
+
+      async function uploadImageToAlbum(albumId, file, meta) {
+        const createdAtMs = Date.now();
+        const useOriginal = !!meta.original;
+
+        if (!useOriginal) {
+          const ext = "webp";
+          const path = `albums/${albumId}/${createdAtMs}_${safeStorageName(file.name)}.${ext}`;
+          const { blob, width, height, mime } = await fileToCompressedBlob(file, {
+            maxW: 1600,
+            maxH: 1600,
+            quality: 0.8,
+            mime: "image/webp",
+          });
+          const storageRef = ref(storage, path);
+          await uploadBytes(storageRef, blob, { contentType: mime });
+          const url = await getDownloadURL(storageRef);
+          await addDoc(imagesColForAlbum(albumId), {
+            title: meta.title || file.name,
+            description: meta.description || "",
+            url,
+            storagePath: path,
+            width,
+            height,
+            mime,
+            createdAt: serverTimestamp(),
+            createdAtMs,
+            ownerUid: auth.currentUser?.uid || null,
+          });
+          return;
+        }
+
+        const { dataUrl, width, height, mime } = await fileToDataUrlUnderFirestoreLimit(file, true);
+        await addDoc(imagesColForAlbum(albumId), {
+          title: meta.title || file.name,
+          description: meta.description || "",
+          url: dataUrl,
+          storagePath: "",
+          width,
+          height,
+          mime: mime || "image/*",
+          createdAt: serverTimestamp(),
+          createdAtMs,
+          ownerUid: auth.currentUser?.uid || null,
+        });
+      }
+
+      onSnapshot(
+        albumsQ,
+        (snap) => {
+          albums = snap.docs.map((d) => {
+            const data = d.data() || {};
+            return { id: d.id, name: data.name || "", createdAt: data.createdAt || null };
+          });
+
+          if (!selectedAlbumId || !albums.some((a) => a.id === selectedAlbumId)) {
+            selectedAlbumId = albums[0]?.id || "";
+            if (selectedAlbumId) localStorage.setItem("dg_albumId", selectedAlbumId);
+          }
+
+          renderAlbums(albums, selectedAlbumId);
+          subscribeImages(selectedAlbumId);
+        },
+        (err) => {
+          els.albumHint.textContent = "Алдаа: Albums уншиж чадсангүй.";
+          console.error(err);
+        },
+      );
+
+      els.albumSelect.addEventListener("change", () => {
+        selectedAlbumId = els.albumSelect.value;
+        if (selectedAlbumId) localStorage.setItem("dg_albumId", selectedAlbumId);
+        els.drawerAlbumSelect.value = selectedAlbumId;
+        subscribeImages(selectedAlbumId);
+      });
+
+      els.drawerAlbumSelect.addEventListener("change", () => {
+        selectedAlbumId = els.drawerAlbumSelect.value;
+        if (selectedAlbumId) localStorage.setItem("dg_albumId", selectedAlbumId);
+        els.albumSelect.value = selectedAlbumId;
+        subscribeImages(selectedAlbumId);
+      });
+
+      els.createAlbumBtn.addEventListener("click", async () => {
+        if (!auth.currentUser) return alert("Admin нэвтэрч байж album үүсгэнэ.");
+        const name = String(prompt("Шинэ album нэр") || "").trim();
+        if (!name) return;
+        els.createAlbumBtn.disabled = true;
+        try {
+          const created = await addDoc(albumsCol, {
+            name,
+            createdAt: serverTimestamp(),
+            ownerUid: auth.currentUser?.uid || null,
+          });
+          selectedAlbumId = created.id;
+          localStorage.setItem("dg_albumId", selectedAlbumId);
+          renderAlbums(albums, selectedAlbumId);
+          els.albumSelect.value = selectedAlbumId;
+          els.drawerAlbumSelect.value = selectedAlbumId;
+          subscribeImages(selectedAlbumId);
+        } catch (e) {
+          alert(e?.message || String(e));
+        } finally {
+          els.createAlbumBtn.disabled = false;
+        }
+      });
+
+      els.deleteAlbumBtn.addEventListener("click", async () => {
+        if (!auth.currentUser) return alert("Admin нэвтэрч байж album устгана.");
+        if (!selectedAlbumId) return;
+        if (!confirm("Энэ album-ийг устгах уу? (Зурагнууд Firestore дээр үлдэнэ)")) return;
+        els.deleteAlbumBtn.disabled = true;
+        try {
+          await deleteDoc(doc(db, "albums", selectedAlbumId));
+          selectedAlbumId = "";
+          localStorage.removeItem("dg_albumId");
+        } catch (e) {
+          alert(e?.message || String(e));
+        } finally {
+          els.deleteAlbumBtn.disabled = false;
+        }
+      });
+
+      let previewUrls = [];
+      let previewFiles = [];
+      let previewActiveIdx = 0;
+      function clearPreviews() {
+        for (const u of previewUrls) URL.revokeObjectURL(u);
+        previewUrls = [];
+        previewFiles = [];
+        previewActiveIdx = 0;
+        els.previewThumbs.innerHTML = "";
+        els.previewWrap.style.display = "none";
+        els.previewCount.textContent = "0 файл";
+      }
+
+      function setActivePreview(idx) {
+        previewActiveIdx = Math.max(0, Math.min(idx, previewFiles.length - 1));
+        const f = previewFiles[previewActiveIdx];
+        if (!f) return;
+
+        // active thumb
+        for (const btn of Array.from(els.previewThumbs.querySelectorAll(".thumbBtn"))) {
+          btn.classList.toggle("active", Number(btn.getAttribute("data-idx")) === previewActiveIdx);
+        }
+
+        const url = previewUrls[previewActiveIdx];
+        els.previewMainImg.classList.remove("fadeSwap");
+        // force reflow for restart animation
+        void els.previewMainImg.offsetWidth;
+        els.previewMainImg.src = url;
+        els.previewMainCap.textContent = f.name;
+        els.previewMainImg.classList.add("fadeSwap");
+      }
+
+      function renderPreviews(files) {
+        clearPreviews();
+        if (!files.length) return;
+        els.previewWrap.style.display = "";
+        els.previewCount.textContent = `${files.length} файл`;
+
+        previewFiles = files.slice();
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          const url = URL.createObjectURL(f);
+          previewUrls.push(url);
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "thumbBtn";
+          btn.setAttribute("data-idx", String(i));
+          btn.innerHTML = `
+            <img src="${escapeHtml(url)}" alt="${escapeHtml(f.name)}" />
+            <div class="tcap">${escapeHtml(f.name)}</div>
+          `;
+          btn.addEventListener("click", () => setActivePreview(i));
+          els.previewThumbs.appendChild(btn);
+        }
+
+        setActivePreview(0);
+      }
+
+      els.fileInput.addEventListener("change", () => {
+        const files = Array.from(els.fileInput.files || []);
+        renderPreviews(files);
+      });
+
+      els.uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!auth.currentUser) return setMsg("err", "Admin нэвтэрч байж upload хийнэ.");
+        if (!selectedAlbumId) return setMsg("err", "Album сонгоно уу (эсвэл шинээр үүсгэнэ үү).");
+
+        const files = Array.from(els.fileInput.files || []);
+        if (!files.length) {
+          setMsg("err", "Файл сонгоно уу.");
+          return;
+        }
+
+        els.uploadBtn.disabled = true;
+        setMsg("hint", `Upload эхэллээ… (0/${files.length})`);
+
+        const title = els.titleInput.value.trim();
+        const desc = els.descInput.value.trim();
+
+        let done = 0;
+        const failed = [];
+        for (const f of files) {
+          try {
+            await uploadImageToAlbum(selectedAlbumId, f, {
+              title: title || f.name,
+              description: desc || "",
+              original: !!els.originalToggle?.checked,
+            });
+            done += 1;
+            setMsg("hint", `Upload… (${done}/${files.length})`);
+          } catch (err) {
+            failed.push(`${f.name}: ${err?.message || err}`);
+            console.error("Upload fail:", f.name, err);
+          }
+        }
+
+        els.uploadBtn.disabled = false;
+        if (done && !failed.length) {
+          setMsg("ok", `Амжилттай: ${done}/${files.length} зураг upload хийгдлээ.`);
+          els.fileInput.value = "";
+          clearPreviews();
+        } else if (done && failed.length) {
+          setMsg("err", `${done} амжилттай, ${failed.length} алдаатай:\n${failed.slice(0, 3).join("\n")}${failed.length > 3 ? "\n…" : ""}`);
+        } else {
+          setMsg("err", failed[0] || "Upload амжилтгүй.");
+        }
+      });
+    </script>
+  </body>
+</html>
+
